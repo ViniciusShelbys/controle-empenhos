@@ -7,45 +7,43 @@
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
       margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f8;
     }
 
-    /* LOGIN */
-    .login-box {
+    .login {
       max-width: 360px;
-      margin: 120px auto;
+      margin: 100px auto;
       background: #fff;
-      padding: 25px;
+      padding: 30px;
       border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,.1);
     }
 
-    .login-box h2 {
+    .login h2 {
       text-align: center;
       margin-bottom: 20px;
     }
 
-    .login-box input {
+    input, button {
       width: 100%;
       padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      margin-top: 10px;
     }
 
-    .login-box button {
-      width: 100%;
-      padding: 10px;
+    button {
       background: #1976d2;
       color: #fff;
       border: none;
-      border-radius: 4px;
       cursor: pointer;
+      border-radius: 4px;
     }
 
-    /* DASHBOARD */
+    button:hover {
+      background: #125aa0;
+    }
+
     .app {
       display: none;
       height: 100vh;
@@ -53,7 +51,7 @@
 
     .sidebar {
       width: 220px;
-      background: #1f2937;
+      background: #1e1e2f;
       color: #fff;
       padding: 20px;
     }
@@ -64,19 +62,47 @@
 
     .sidebar a {
       display: block;
-      color: #cbd5e1;
+      color: #fff;
       text-decoration: none;
       margin: 10px 0;
+      cursor: pointer;
     }
 
-    .content {
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+
+    .main {
       flex: 1;
       padding: 20px;
+      background: #f4f6f8;
     }
 
-    .layout {
+    .container {
       display: flex;
       height: 100%;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 0 5px rgba(0,0,0,.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+
+    th {
+      background: #eee;
     }
   </style>
 </head>
@@ -84,68 +110,21 @@
 <body>
 
 <!-- LOGIN -->
-<div class="login-box" id="loginBox">
+<div class="login" id="loginBox">
   <h2>Controle de Empenhos</h2>
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="senha" placeholder="Senha">
   <button onclick="login()">Entrar</button>
 </div>
 
-<!-- DASHBOARD -->
+<!-- APP -->
 <div class="app" id="app">
-  <div class="layout">
+  <div class="container">
+
     <div class="sidebar">
       <h3>Menu</h3>
-      <a href="#">Dashboard</a>
-      <a href="#">Empenhos</a>
-      <a href="#">Financeiro</a>
-      <a href="#" onclick="logout()">Sair</a>
-    </div>
-
-    <div class="content">
-      <h1>Dashboard</h1>
-      <p>Login realizado com sucesso.</p>
-    </div>
-  </div>
-</div>
-
-<!-- FIREBASE (VERSÃO SIMPLES E FUNCIONAL) -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-
-<script>
-  // CONFIG FIREBASE (SEU)
-  var firebaseConfig = {
-    apiKey: "AIzaSyC_fU_TGvlrNUxYmc0LR6knqmk5D7pBt8A",
-    authDomain: "controle-de-empenhos-ad66b.firebaseapp.com",
-    projectId: "controle-de-empenhos-ad66b",
-    storageBucket: "controle-de-empenhos-ad66b.appspot.com",
-    messagingSenderId: "885070566816",
-    appId: "1:885070566816:web:742fcf70cc562359cc00c5"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-
-  function login() {
-    var email = document.getElementById("email").value;
-    var senha = document.getElementById("senha").value;
-
-    firebase.auth().signInWithEmailAndPassword(email, senha)
-      .then(function () {
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("app").style.display = "block";
-      })
-      .catch(function (error) {
-        alert(error.message);
-      });
-  }
-
-  function logout() {
-    firebase.auth().signOut().then(function () {
-      location.reload();
-    });
-  }
-</script>
-
-</body>
-</html>
+      <a onclick="mostrar('dashboard')">Dashboard</a>
+      <a onclick="mostrar('empenhos')">Empenhos</a>
+      <a onclick="mostrar('financeiro')">Financeiro</a>
+      <a onclick="logout()">Sair</a>
+    </
