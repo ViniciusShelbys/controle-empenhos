@@ -18,21 +18,20 @@ body {
   background: #fff;
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,.1);
 }
 
-input, button {
+input, select, button {
   width: 100%;
-  padding: 10px;
-  margin-top: 10px;
+  padding: 8px;
+  margin-top: 8px;
 }
 
 button {
   background: #1976d2;
   color: #fff;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
+  border-radius: 4px;
 }
 
 .app {
@@ -55,19 +54,57 @@ button {
 .sidebar a {
   display: block;
   color: #fff;
-  text-decoration: none;
-  margin: 12px 0;
+  margin: 10px 0;
   cursor: pointer;
 }
 
 .main {
   flex: 1;
   padding: 20px;
+  overflow: auto;
+}
+
+.cards {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .card {
   background: #fff;
+  padding: 15px;
+  border-radius: 6px;
+  flex: 1;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+th {
+  background: #eee;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #fff;
   padding: 20px;
+  width: 320px;
   border-radius: 6px;
 }
 </style>
@@ -78,8 +115,8 @@ button {
 <!-- LOGIN -->
 <div class="login" id="loginBox">
   <h2>Controle de Empenhos</h2>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="senha" placeholder="Senha">
+  <input id="email" placeholder="Email">
+  <input id="senha" type="password" placeholder="Senha">
   <button id="btnLogin">Entrar</button>
 </div>
 
@@ -88,37 +125,69 @@ button {
   <div class="container">
     <div class="sidebar">
       <h3>Menu</h3>
-      <a onclick="mostrar('dashboard')">Dashboard</a>
-      <a onclick="mostrar('empenhos')">Empenhos</a>
-      <a onclick="mostrar('financeiro')">Financeiro</a>
-      <a onclick="logout()">Sair</a>
+      <a>📄 Empenhos</a>
+      <a onclick="logout()">🚪 Sair</a>
     </div>
 
     <div class="main">
-      <div id="dashboard" class="card">
-        <h2>Dashboard</h2>
-        <p>Login realizado com sucesso.</p>
+      <div class="cards">
+        <div class="card">
+          <strong>Total de Empenhos</strong>
+          <div id="totalQtd">0</div>
+        </div>
+        <div class="card">
+          <strong>Valor Total</strong>
+          <div id="totalValor">R$ 0,00</div>
+        </div>
       </div>
 
-      <div id="empenhos" class="card" style="display:none">
-        <h2>Empenhos</h2>
-        <p>Área de empenhos</p>
-      </div>
+      <button onclick="abrirModal()">+ Novo Empenho</button>
 
-      <div id="financeiro" class="card" style="display:none">
-        <h2>Financeiro</h2>
-        <p>Área financeira</p>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Nº Empenho</th>
+            <th>UASG</th>
+            <th>Pregão</th>
+            <th>Data</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th>Rastreio</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabela"></tbody>
+      </table>
     </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3>Novo Empenho</h3>
+    <input id="mEmpenho" placeholder="Nº Empenho">
+    <input id="mUasg" placeholder="UASG">
+    <input id="mPregao" placeholder="Pregão">
+    <input id="mData" type="date">
+    <input id="mValor" type="number" placeholder="Valor">
+    <select id="mStatus">
+      <option>Recebido</option>
+      <option>Despachado</option>
+      <option>Entregue</option>
+    </select>
+    <input id="mRastreio" placeholder="Código de Rastreio">
+    <button onclick="salvar()">Salvar</button>
+    <button onclick="fecharModal()">Cancelar</button>
   </div>
 </div>
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* 🔥 CONFIG FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyC_fU_TGvlrNUxYmc0LR6knqmk5D7pBt8A",
   authDomain: "controle-de-empenhos-ad66b.firebaseapp.com",
@@ -130,49 +199,77 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.firestore();
 
-/* 🔥 ELEMENTOS */
-const emailInput = document.getElementById("email");
-const senhaInput = document.getElementById("senha");
 const loginBox = document.getElementById("loginBox");
 const app = document.getElementById("app");
+const tabela = document.getElementById("tabela");
 
-const dashboard = document.getElementById("dashboard");
-const empenhos = document.getElementById("empenhos");
-const financeiro = document.getElementById("financeiro");
-
-/* 🔥 LOGIN */
-document.getElementById("btnLogin").addEventListener("click", () => {
+document.getElementById("btnLogin").onclick = () => {
   auth.signInWithEmailAndPassword(
-    emailInput.value,
-    senhaInput.value
-  ).catch(err => alert(err.message));
-});
+    email.value,
+    senha.value
+  ).catch(e => alert(e.message));
+};
 
-/* 🔥 LOGOUT */
-function logout() {
-  auth.signOut();
-}
-
-/* 🔥 MENU */
-function mostrar(id) {
-  dashboard.style.display = "none";
-  empenhos.style.display = "none";
-  financeiro.style.display = "none";
-  document.getElementById(id).style.display = "block";
-}
-
-/* 🔥 CONTROLE DE LOGIN (ESSENCIAL) */
 auth.onAuthStateChanged(user => {
   if (user) {
     loginBox.style.display = "none";
     app.style.display = "block";
-    mostrar("dashboard");
-  } else {
-    app.style.display = "none";
-    loginBox.style.display = "block";
+    carregar();
   }
 });
+
+function logout() {
+  auth.signOut();
+}
+
+function abrirModal() {
+  modal.style.display = "flex";
+}
+function fecharModal() {
+  modal.style.display = "none";
+}
+
+function salvar() {
+  db.collection("empenhos").add({
+    empenho: mEmpenho.value,
+    uasg: mUasg.value,
+    pregao: mPregao.value,
+    data: mData.value,
+    valor: Number(mValor.value),
+    status: mStatus.value,
+    rastreio: mRastreio.value
+  }).then(() => {
+    fecharModal();
+    carregar();
+  });
+}
+
+function carregar() {
+  tabela.innerHTML = "";
+  let total = 0;
+  db.collection("empenhos").get().then(snap => {
+    document.getElementById("totalQtd").innerText = snap.size;
+    snap.forEach(doc => {
+      const d = doc.data();
+      total += d.valor;
+      tabela.innerHTML += `
+        <tr>
+          <td>${d.empenho}</td>
+          <td>${d.uasg}</td>
+          <td>${d.pregao}</td>
+          <td>${d.data}</td>
+          <td>R$ ${d.valor.toFixed(2)}</td>
+          <td>${d.status}</td>
+          <td>${d.rastreio}</td>
+          <td><button onclick="db.collection('empenhos').doc('${doc.id}').delete().then(carregar)">Excluir</button></td>
+        </tr>`;
+    });
+    document.getElementById("totalValor").innerText =
+      "R$ " + total.toFixed(2);
+  });
+}
 </script>
 
 </body>
