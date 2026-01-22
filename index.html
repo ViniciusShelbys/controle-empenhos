@@ -8,22 +8,17 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: Arial, sans-serif;
       background: #f4f6f8;
     }
 
     .login {
       max-width: 360px;
-      margin: 100px auto;
+      margin: 120px auto;
       background: #fff;
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,.1);
-    }
-
-    .login h2 {
-      text-align: center;
-      margin-bottom: 20px;
     }
 
     input, button {
@@ -36,12 +31,8 @@
       background: #1976d2;
       color: #fff;
       border: none;
-      cursor: pointer;
       border-radius: 4px;
-    }
-
-    button:hover {
-      background: #125aa0;
+      cursor: pointer;
     }
 
     .app {
@@ -49,15 +40,16 @@
       height: 100vh;
     }
 
+    .container {
+      display: flex;
+      height: 100%;
+    }
+
     .sidebar {
       width: 220px;
       background: #1e1e2f;
       color: #fff;
       padding: 20px;
-    }
-
-    .sidebar h3 {
-      margin-top: 0;
     }
 
     .sidebar a {
@@ -68,41 +60,15 @@
       cursor: pointer;
     }
 
-    .sidebar a:hover {
-      text-decoration: underline;
-    }
-
     .main {
       flex: 1;
       padding: 20px;
-      background: #f4f6f8;
-    }
-
-    .container {
-      display: flex;
-      height: 100%;
     }
 
     .card {
       background: #fff;
       padding: 20px;
       border-radius: 6px;
-      box-shadow: 0 0 5px rgba(0,0,0,.1);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-
-    th {
-      background: #eee;
     }
   </style>
 </head>
@@ -120,11 +86,65 @@
 <!-- APP -->
 <div class="app" id="app">
   <div class="container">
-
     <div class="sidebar">
       <h3>Menu</h3>
       <a onclick="mostrar('dashboard')">Dashboard</a>
       <a onclick="mostrar('empenhos')">Empenhos</a>
       <a onclick="mostrar('financeiro')">Financeiro</a>
       <a onclick="logout()">Sair</a>
-    </
+    </div>
+
+    <div class="main">
+      <div id="dashboard" class="card">
+        <h2>Dashboard</h2>
+        <p>Login realizado com sucesso.</p>
+      </div>
+
+      <div id="empenhos" class="card" style="display:none">
+        <h2>Empenhos</h2>
+        <p>Área de empenhos</p>
+      </div>
+
+      <div id="financeiro" class="card" style="display:none">
+        <h2>Financeiro</h2>
+        <p>Área financeira</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyC_fU_TGvlrNUxYmc0LR6knqmk5D7pBt8A",
+    authDomain: "controle-de-empenhos-ad66b.firebaseapp.com",
+    projectId: "controle-de-empenhos-ad66b",
+    storageBucket: "controle-de-empenhos-ad66b.appspot.com",
+    messagingSenderId: "885070566816",
+    appId: "1:885070566816:web:742fcf70cc562359cc00c5"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  function login() {
+    auth.signInWithEmailAndPassword(
+      email.value,
+      senha.value
+    ).catch(e => alert(e.message));
+  }
+
+  function logout() {
+    auth.signOut();
+  }
+
+  function mostrar(id) {
+    dashboard.style.display = "none";
+    empenhos.style.display = "none";
+    financeiro.style.display = "none";
+    document.getElementById(id).style.display = "block";
+  }
+
