@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Controle de Empenhos</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f6f8; margin:0; }
+    .container { max-width:1100px; margin:auto; padding:20px; }
+    .card { background:#fff; border-radius:14px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,.08); margin-bottom:20px; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+    .stat { color:#fff; font-size:18px; }
+    .blue { background:#2196f3; }
+    .green { background:#4caf50; }
+    .orange { background:#ff9800; }
+    .red { background:#f44336; }
+    input, button { padding:12px; width:100%; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; }
+    button { cursor:pointer; border:none; }
+    .primary { background:#2196f3; color:#fff; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:10px; border-bottom:1px solid #ddd; }
+    #dashboard { display:none; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="login" class="card">
+    <h2>Controle de Empenhos</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Senha">
+    <button class="primary" onclick="login()">Entrar</button>
+    <button onclick="resetSenha()">Esqueci minha senha</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <div class="cards">
+      <div class="card stat blue">Total Empenhos<br><strong id="total">0</strong></div>
+      <div class="card stat green">Valor Total<br><strong id="valor">R$ 0</strong></div>
+      <div class="card stat orange">Despachados<br><strong id="desp">0</strong></div>
+      <div class="card stat red">Pendentes<br><strong id="pend">0</strong></div>
+    </div>
+
+    <div class="card">
+      <h3>Novo Empenho</h3>
+      <input id="empenho" placeholder="Nº Empenho">
+      <input id="valorEmp" type="number" placeholder="Valor">
+      <input id="rastreamento" placeholder="Código de Rastreamento">
+      <button class="primary" onclick="salvar()">Salvar</button>
+    </div>
+
+    <div class="card">
+      <h3>Empenhos</h3>
+      <table>
+        <thead>
+          <tr><th>Empenho</th><th>Valor</th><th>Rastreamento</th></tr>
+        </thead>
+        <tbody id="lista"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // 🔴 COLE AQUI O firebaseConfig QUE VOCÊ COPIOU
+  const firebaseConfig = {
+  apiKey: "AIzaSyC_fU_TGvlrNUxYmc0LR6knqmk5D7pBt8A",
+  authDomain: "controle-de-empenhos-ad66b.firebaseapp.com",
+  projectId: "controle-de-empenhos-ad66b",
+  storageBucket: "controle-de-empenhos-ad66b.firebasestorage.app",
+  messagingSenderId: "885070566816",
+  appId: "1:885070566816:web:742fcf70cc562359cc00c5"
+};
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  auth.onAuthStateChanged(user => {
+    if(user){
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      carregar();
+    }
+  });
+
+  function login(){
+    auth.signInWithEmailAndPassword(email.value, password.value)
+      .catch(e => alert(e.message));
+  }
+
+  function resetSenha(){
+    auth.sendPasswordResetEmail(email.value)
+      .then(()=>alert('Email enviado para redefinir a senha'))
+      .catch(e=>alert(e.message));
+  }
+
+  function salvar(){
+    db.collection('empenhos').add({
+      empenho: empenho.value,
+      valor: Number(valorEmp.value),
+      rastreamento: rastreamento.value,
+      status: 'Pendente'
+    }).then(()=>{
+      empenho.value=''; valorEmp.value=''; rastreamento.value='';
+      carregar();
+    });
+  }
+
+  function carregar(){
+    let total=0, soma=0, desp=0;
+    lista.innerHTML='';
+    db.collection('empenhos').get().then(snap=>{
+      snap.forEach(doc=>{
+        const d = doc.data();
+        total++; soma+=d.valor;
+        lista.innerHTML += `<tr><td>${d.empenho}</td><td>R$ ${d.valor}</td><td>${d.rastreamento}</td></tr>`;
+      });
+      document.getElementById('total').innerText = total;
+      document.getElementById('valor').innerText = 'R$ '+soma;
+      document.getElementById('desp').innerText = desp;
+      document.getElementById('pend').innerText = total - desp;
+    });
+  }
+</script>
+
+</body>
+</html>
