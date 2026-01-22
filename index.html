@@ -56,7 +56,7 @@ button {
   display: block;
   color: #fff;
   text-decoration: none;
-  margin: 10px 0;
+  margin: 12px 0;
   cursor: pointer;
 }
 
@@ -80,7 +80,7 @@ button {
   <h2>Controle de Empenhos</h2>
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="senha" placeholder="Senha">
-  <button onclick="login()">Entrar</button>
+  <button id="btnLogin">Entrar</button>
 </div>
 
 <!-- APP -->
@@ -118,6 +118,7 @@ button {
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
 <script>
+/* 🔥 CONFIG FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyC_fU_TGvlrNUxYmc0LR6knqmk5D7pBt8A",
   authDomain: "controle-de-empenhos-ad66b.firebaseapp.com",
@@ -130,13 +131,49 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-function login() {
-  auth.signInWithEmailAndPassword(
-    email.value,
-    senha.value
-  ).catch(e => alert(e.message));
-}
+/* 🔥 ELEMENTOS */
+const emailInput = document.getElementById("email");
+const senhaInput = document.getElementById("senha");
+const loginBox = document.getElementById("loginBox");
+const app = document.getElementById("app");
 
+const dashboard = document.getElementById("dashboard");
+const empenhos = document.getElementById("empenhos");
+const financeiro = document.getElementById("financeiro");
+
+/* 🔥 LOGIN */
+document.getElementById("btnLogin").addEventListener("click", () => {
+  auth.signInWithEmailAndPassword(
+    emailInput.value,
+    senhaInput.value
+  ).catch(err => alert(err.message));
+});
+
+/* 🔥 LOGOUT */
 function logout() {
   auth.signOut();
 }
+
+/* 🔥 MENU */
+function mostrar(id) {
+  dashboard.style.display = "none";
+  empenhos.style.display = "none";
+  financeiro.style.display = "none";
+  document.getElementById(id).style.display = "block";
+}
+
+/* 🔥 CONTROLE DE LOGIN (ESSENCIAL) */
+auth.onAuthStateChanged(user => {
+  if (user) {
+    loginBox.style.display = "none";
+    app.style.display = "block";
+    mostrar("dashboard");
+  } else {
+    app.style.display = "none";
+    loginBox.style.display = "block";
+  }
+});
+</script>
+
+</body>
+</html>
